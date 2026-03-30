@@ -1,0 +1,125 @@
+# EMKO inverter Modbus mapping
+# Author Fulup Ar foll
+# Date: nov-2025
+# Model: EMKO inverter SG03LP1-EU
+
+# Reference :
+# hexa: https://github.com/kbialek/emko-inverter-mqtt/blob/e9cb713defddff14296e9094beec098a5017d59a/ha_definitions/emko_sg02lp1_ha.yaml
+# deci: https://github.com/kbialek/emko-inverter-mqtt/blob/e9cb713defddff14296e9094beec098a5017d59a/ha_definitions/emko_sg02lp1_map.yaml
+
+# Notes:
+# - with multiple inverters in parallel mode, BMS data is only reported to Master Inverter.
+# - serial port provide the same modus information in RS232 on serial port, than on rs485 CAN/RS485 port.
+# - move count: 1 to count: 3 for 3 phases inverter
+# - even for READ only register EMKO request R/W function (Register_Holding)
+
+# Update udev rules & apply with ```udevadm control --reload-rules && udevadm trigger```
+# SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", SYMLINK+="ttyRS485"
+# SUBSYSTEM=="tty", ATTRS{idVendor}=="067b", ATTRS{idProduct}=="2303", SYMLINK+="ttyRS232"
+
+
+# Low level debug modbus (when nothing works)
+# --------------------------------------------
+# generate custom request https://npulse.net/en/online-modbus
+# echo -ne "\x01\x04\x00\x01\x00\x01\x60\x0A" | socat - /dev/ttyUSB0,b9600 | od -t x1
+name: afb-emko
+no-ldpaths: true
+port: 1239
+alias:
+  - /devtools:/usr/share/afb-ui-devtools/binder
+  - /:/usr/share/afb-ui-devtools/binder
+
+extension:
+- path: "/usr/local/lib/libafb-mqtt-ext.so"
+"@extconfig":
+  MQTT:
+    config: { "$ref": "/home/fulup/Workspace/Tux-Solar/Emko-Modbus/etc/mqtt-emko.yaml" }
+
+binding:
+  - path: /usr/local/redpesk/modbus-binding/lib/modbus-binding.so
+    metadata:
+      uid: modbus-tty-rs485
+      version: "1.0"
+      api: tty-rs485
+      info: Emko & Battery config & log
+    modbus:
+      uid: Emko-Inverter
+      info: EMKO main inverter
+      uri: tty://dev/serial/by-id/usb-FTDI_USB-RS485_Cable_AU057OGY-if00-port0:9600
+      prefix: EMKO
+      slaveid: 1
+      autostart: 1
+      hertz: 1
+      idle: 60  
+      sensors:
+        - uid: Temperature-Current
+          info: Temperature current value in .1°C
+          type: Register_Input
+          format: INT16
+          register: 0000  
+
+        - uid: Relay-State
+          info: Relay Status 128=false 129=true
+          type: Register_Input
+          format: INT16
+          register: 0003
+
+        - uid: Temperature-Target
+          info: Temperature Target in .1°C
+          type: Register_Holding
+          format: INT16
+          register: 0000
+          sample:
+            - action: write
+              data: 200
+            - action: write
+              data: 280
+
+#        - uid: Temperature-Unit
+#          info: 0=>°C 1=>°F (C-F)
+#          type: Register_Holding
+#          format: INT16
+#          register: 0001
+#          sample:
+#            - action: write
+#              data: 0
+#            - action: write
+#              data: 1
+
+#        - uid: Point-Decimal
+#          info: 0=> Off 1=> On (Pnt)
+#          type: Register_Holding
+#          format: Bool
+#          register: 0002
+#          sample:
+#            - action: write
+#              data: false
+#            - action: write
+#              data: true
+          
+        - uid: Temperature-Min
+          info: Temperature Minimal in .1°C (SuL)
+          type: Register_Holding
+          format: INT16
+          register: 0004
+          sample:
+            - action: write
+              data: 220
+
+        - uid: Temperature-Max
+          info: "Temperature Maximum in .1°C (SuH)"
+          type: Register_Holding
+          format: INT16
+          register: 0005
+          sample:
+            - action: write
+              data: 300
+
+        - uid: Temp-Offset
+          info: Temperature Offset in .1°C (Oft)
+          type: Register_Holding
+          format: INT16
+          register: 0006
+          sample:
+            - action: write
+              data: 50

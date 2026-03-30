@@ -1,0 +1,47 @@
+# mosquitto_sub  -h localhost -u linky -P '!GizKoz007' -t 'emko/#' -v
+broker-host: "localhost"
+broker-user: $LINKY_USR
+broker-pwd: $LINKY_PWD
+broker-port: 1883
+client-id: afb-emko 
+publish-topic: emko
+publish-extend: true
+to-mqtt:
+  event:
+    # auto-register to following events
+    registrations:
+      - api: tty-rs485
+        verb: EMKO/Temperature-Current
+        args:
+          action: subscribe
+      - api: tty-rs485
+        verb: EMKO/Relay-State
+        args:
+          action: subscribe
+      - api: tty-rs485
+        verb: EMKO/Temperature-Target
+        args:
+          action: subscribe
+      - api: tty-rs485
+        verb: EMKO/Relay-Control
+        args:
+          action: subscribe
+      - api: tty-rs485
+        verb: EMKO/Temperature-Max
+        args:
+          action: subscribe
+      - api: tty-rs485
+        verb: EMKO/Temperature-Min
+        args:
+          action: subscribe
+    template:
+      data: "%{data}"
+
+subscribe-topic: emko-rqt
+from-mqtt:
+  api: tty-rs485
+  request-extraction:
+    verb-path: .verb
+    data-path: .query
+  response-template:
+    received: "%{request.query}"

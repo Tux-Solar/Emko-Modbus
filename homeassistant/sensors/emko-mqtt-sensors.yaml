@@ -1,0 +1,69 @@
+# Emko Temperature section
+# ----------------
+- unique_id: emko_current_temp
+  name: Emko Current Value
+  device:
+    identifiers: Emko-Controler
+    model_id: emko-3711
+    name: Emko Temperature
+    model: Emko 3711-HN
+  state_class: measurement
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_topic: emko/Temperature-Current
+  value_template: "{{ ( value_json.data ) | float / 10 }}"
+  enabled_by_default: true
+
+- unique_id: emko_target_temp
+  name: Emko Target Value
+  device:
+    identifiers: Emko-Controler
+    model_id: emko-3711
+    name: Emko Temperature
+    model: Emko 3711-HN
+  state_class: measurement
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_topic: emko/Temperature-Target
+  value_template: "{{ ( value_json.data ) | float / 10 }}"
+  enabled_by_default: true
+
+- unique_id: emko_min_temp
+  name: Emko Min Value
+  device:
+    identifiers: Emko-Controler
+    model_id: emko-3711
+    name: Emko Temperature
+    model: Emko 3711-HN
+  state_class: measurement
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_topic: emko/Temperature-Min
+  value_template: "{{ ( value_json.data ) | float / 10 }}"
+  enabled_by_default: true
+
+- unique_id: emko_max_temp
+  name: Emko Max Value
+  device:
+    identifiers: Emko-Controler
+    model_id: emko-3711
+    name: Emko Temperature
+    model: Emko 3711-HN
+  state_class: measurement
+  unit_of_measurement: "°C"
+  device_class: temperature
+  state_topic: emko/Temperature-Max
+  value_template: "{{ ( value_json.data ) | float / 10 }}"
+  enabled_by_default: true
+
+- unique_id: emko_relay_state
+  name: Emko Relay State
+  device:
+    identifiers: Emko-Controler
+    model_id: emko-3711
+    name: Emko Temperature
+    model: Emko 3711-HN
+  state_topic: emko/Relay-State
+  value_template: "{{  (( value_json.data ) | int) == 129 }}"
+  enabled_by_default: true
+

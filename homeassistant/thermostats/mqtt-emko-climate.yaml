@@ -1,0 +1,56 @@
+# Emko Temperature section
+# Ref: https://www.home-assistant.io/integrations/climate.mqtt/
+# -------------------------------------------------------------
+- unique_id: emko_thermostat
+  name: Emko Thermostat
+  enabled_by_default: true
+  device:
+    identifiers: Emko-Controler
+    model_id: emko-3711
+    name: Emko Temperature
+    model: Emko 3711-HN
+
+  min_temp: 20
+  max_temp: 30
+  precision: 0.1
+
+  current_temperature_topic: emko/Temperature-Current
+  current_temperature_template:  "{{ ( value_json.data ) | float / 10 }}"
+    
+  temperature_state_topic: emko/Temperature-target
+  temperature_state_template:  "{{ ( value_json.data ) | float / 10 }}"
+    
+  temperature_command_topic: emko-rqt
+  temperature_command_template: "{ 'verb':'EMKO/Temperature-Target','query': {'action':'write','data':{{ (value * 10) | int }} }}"  
+
+  temperature_high_state_topic: emko/Temperature-Max
+  temperature_high_state_template:  "{{ ( value_json.data ) | float / 10 }}"
+  temperature_high_command_topic: emko-rqt
+  temperature_high_command_template: "{ 'verb':'EMKO/Temperature-Max','query': {'action':'write','data':{{ (value * 10) | int }} }}"  
+
+  temperature_low_state_topic: emko/Temperature-Min
+  temperature_low_state_template:  "{{ ( value_json.data ) | float / 10 }}"
+  temperature_low_command_topic: emko-rqt
+  temperature_low_command_template: "{ 'verb':'EMKO/Temperature-Min','query': {'action':'write','data':{{ (value * 10) | int }} }}"  
+
+  mode_state_topic: emko/Relay-State
+  mode_state_template: >
+      {% if ( value_json.data | int ) == 129 %}
+         heat
+      {% else %}
+         cool
+      {% endif %}
+
+  modes:
+    - "heat"
+    - "cool"  
+
+  # Emko ignore any attemps to set temp low/higher than min/max
+  mode_command_topic: emko-rqt
+  mode_command_template: >
+     {% if value == 'cool' %}
+        { 'verb':'EMKO/Temperature-Target','query': {'action':'write', 'data': {{ (states('sensor.emko_temperature_emko_min_value') | float * 10) | int }} }}
+     {% else %}
+        { 'verb':'EMKO/Temperature-Target','query': {'action':'write', 'data': {{ (states('sensor.emko_temperature_emko_max_value') | float * 10) | int }} }}
+     {% endif %}
+
