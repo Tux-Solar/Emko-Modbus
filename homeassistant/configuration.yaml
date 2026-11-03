@@ -1,0 +1,4 @@
+mqtt:
+  - sensor: !include_dir_merge_list mqtt/sensors        # https://www.home-assistant.io/integrations/sensor.mqtt/
+  - climate: !include_dir_merge_list mqtt/thermostats   # https://www.home-assistant.io/integrations/climate.mqtt/
+

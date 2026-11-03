@@ -1,0 +1,31 @@
+# Author: Fulup Ar Foll fulup@iot.bzh
+# Object: Start Emko monitoring service
+# sudo cp emko.service /usr/lib/systemd/system/.
+# sudo systemctl daemon-reload
+# sudo systemctl start emko
+# sudo journalctl -fxeu emko.service
+# sudo systemctl enable emko
+
+[Unit]
+Wants=network-online.target
+After=network-online.target
+Description=Emko Modbus Thermostat
+Wants=mosquitto.service
+After=mosquitto.service
+
+[Install]
+# Start by default on boot
+WantedBy=multi-user.target default.target
+
+[Service]
+# note: environement var are not exported to final process
+Environment="LD_LIBRARY_PATH=/usr/local/lib64:/usr/local/lib:/usr/local/redpesk/modbus-binding/lib"
+EnvironmentFile=/etc/secrets/mqtt.secrets
+Restart=always
+RestartSec=10
+User=fulup
+ExecStop=pkill afb-emko1
+Delegate=yes
+SyslogIdentifier=%N
+ExecStart=/usr/local/bin/afb-binder -v --config=/home/fulup/Workspace/Tux-Solar/Emko-Modbus/etc/modbus-emko.yaml --port=1239
+

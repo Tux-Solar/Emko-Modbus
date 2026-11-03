@@ -1,0 +1,56 @@
+alias: Picsine On/Off
+description: ""
+triggers:
+  - trigger: time_pattern
+    minutes: /15
+conditions:
+  - condition: sun
+    before: sunset
+    after: sunrise
+actions:
+  - choose:
+      - conditions:
+          - condition: numeric_state
+            entity_id: sensor.linky_meeter_ct_average
+            below: 500
+          - condition: or
+            conditions:
+              - condition: numeric_state
+                entity_id: sensor.inverter_bms_battery_soc
+                above: 80
+              - condition: numeric_state
+                entity_id: sensor.solar_average_power
+                above: 3000
+        sequence:
+          - device_id: 16344fb7f1eccc8d197bcfb20bbaeac4
+            domain: climate
+            entity_id: 9774c6c77b1312ac46c5b0d109230a76
+            type: set_hvac_mode
+            hvac_mode: heat
+          - action: timer.start
+            metadata: {}
+            target:
+              entity_id: timer.piscine_heating
+            data: {}
+      - conditions:
+          - condition: or
+            conditions:
+              - condition: numeric_state
+                entity_id: sensor.linky_meeter_ct_average
+                above: 1000
+              - condition: numeric_state
+                entity_id: sensor.inverter_bms_battery_soc
+                below: 70
+        sequence:
+          - device_id: 16344fb7f1eccc8d197bcfb20bbaeac4
+            domain: climate
+            entity_id: 9774c6c77b1312ac46c5b0d109230a76
+            type: set_hvac_mode
+            hvac_mode: cool
+          - action: timer.pause
+            metadata: {}
+            target:
+              entity_id: timer.piscine_heating
+            data: {}
+mode: single
+
